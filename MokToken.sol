@@ -868,7 +868,7 @@ contract BEP20 is Context, IBEP20, Ownable {
     }
 }
 
-contract MokToken is BEP20('Mocktail Token', 'MOK') {
+contract MokToken is BEP20('Mocktail', 'MOK') {
     /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
