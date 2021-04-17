@@ -1587,12 +1587,6 @@ contract TestShots is Ownable {
         user.rewardDebt = 0;
     }
     
-    // Transfer Ownership from this to _newOwner
-    function transferMyOwner(address _newOwner) public onlyOwner {
-        MOK.transferOwnership(_newOwner);
-        drink.transferOwnership(_newOwner);
-    }
-
     // Safe MOK transfer function, just in case if rounding error causes pool to not have enough MOKs.
     function safeMokTransfer(address _to, uint256 _amount) internal {
         drink.safeMockTransfer(_to, _amount);
@@ -1602,5 +1596,10 @@ contract TestShots is Ownable {
     function dev(address _devaddr) public {
         require(msg.sender == devaddr, "dev: wut?");
         devaddr = _devaddr;
+    }
+    
+    function updateEmissionRate(uint256 _mokPerBlock) public onlyOwner {
+        massUpdatePools();
+        MOKPerBlock = _mokPerBlock;
     }
 }
