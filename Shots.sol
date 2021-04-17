@@ -1108,7 +1108,7 @@ contract Drinks is BEP20('Drinks', 'DRINK') {
     }
     
     // Safe MOK transfer function, just in case if rounding error causes pool to not have enough MOKs.
-    function safeMokTransfer(address _to, uint256 _amount) public onlyOwner {
+    function safeMockTransfer(address _to, uint256 _amount) public onlyOwner {
         uint256 MOKBal = MOK.balanceOf(address(this));
         if (_amount > MOKBal) {
             MOK.transfer(_to, MOKBal);
@@ -1312,11 +1312,7 @@ contract Drinks is BEP20('Drinks', 'DRINK') {
     }
 }
 
-interface IMigratorBar {
-    function migrate(IBEP20 token) external returns (IBEP20);
-}
-
-contract Shots is Ownable {
+contract TestShots is Ownable {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
@@ -1345,7 +1341,6 @@ contract Shots is Ownable {
     // Bonus muliplier for early MOK makers.
     uint256 public BONUS_MULTIPLIER = 1;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
-    IMigratorBar public migrator;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -1440,23 +1435,6 @@ contract Shots is Ownable {
             totalAllocPoint = totalAllocPoint.sub(poolInfo[0].allocPoint).add(points);
             poolInfo[0].allocPoint = points;
         }
-    }
-
-    // Set the migrator contract. Can only be called by the owner.
-    function setMigrator(IMigratorBar _migrator) public onlyOwner {
-        migrator = _migrator;
-    }
-
-    // Migrate lp token to another lp contract. Can be called by anyone. We trust that migrator contract is good.
-    function migrate(uint256 _pid) public {
-        require(address(migrator) != address(0), "migrate: no migrator");
-        PoolInfo storage pool = poolInfo[_pid];
-        IBEP20 lpToken = pool.lpToken;
-        uint256 bal = lpToken.balanceOf(address(this));
-        lpToken.safeApprove(address(migrator), bal);
-        IBEP20 newLpToken = migrator.migrate(lpToken);
-        require(bal == newLpToken.balanceOf(address(this)), "migrate: bad");
-        pool.lpToken = newLpToken;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -1597,6 +1575,7 @@ contract Shots is Ownable {
         drink.burn(msg.sender, _amount);
         emit Withdraw(msg.sender, 0, _amount);
     }
+    
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) public {
@@ -1608,18 +1587,6 @@ contract Shots is Ownable {
         user.rewardDebt = 0;
     }
     
-    // Withdraw Residual Tokens
-    function withdrawThisTokens(address _token) public onlyOwner {
-        IBEP20 token = IBEP20(_token);
-        token.safeTransfer(msg.sender, token.balanceOf(address(this)));
-    }
-    
-    // Withdraw Residual Amounts in the Contract
-    function withdrawOver(address payable _sender, uint256 _amount) public onlyOwner {
-        require(_sender == msg.sender, 'No third party interference');
-        _sender.transfer(_amount);
-    }
-    
     // Transfer Ownership from this to _newOwner
     function transferMyOwner(address _newOwner) public onlyOwner {
         MOK.transferOwnership(_newOwner);
@@ -1628,7 +1595,7 @@ contract Shots is Ownable {
 
     // Safe MOK transfer function, just in case if rounding error causes pool to not have enough MOKs.
     function safeMokTransfer(address _to, uint256 _amount) internal {
-        drink.safeMokTransfer(_to, _amount);
+        drink.safeMockTransfer(_to, _amount);
     }
 
     // Update dev address by the previous dev.
